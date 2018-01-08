@@ -52,7 +52,7 @@ namespace Recurly
             if (response == null)
                 return null;
 
-            Errors errors = null;
+            Errors errors = new Errors();
 
             using (var responseStream = response.GetResponseStream())
             {
@@ -64,6 +64,10 @@ namespace Recurly
                 catch (XmlException)
                 {
                     // Do nothing
+                }
+                catch (InvalidOperationException)
+               {
+                    Console.WriteLine("Invalid XML response");
                 }
 
                 return errors;

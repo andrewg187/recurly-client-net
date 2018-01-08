@@ -1,4 +1,5 @@
 using System;
+
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -62,6 +63,19 @@ namespace Recurly.Configuration
             private set { _pageSize = value; }
         }
 
+        public string ServerUriPrefix
+        {
+            get
+            {
+                if (_hasLoaded == false)
+                {
+                    throw new Exception("The Recurly client has has no configuration initialized, please add your settings to web/app.config or call Recurly.Configuration.SettingsManager.Initialize(args)");
+                }
+                return _serverUriPrefix;
+            }
+            private set { _serverUriPrefix = value; }
+        }
+
         protected const string RecurlyServerUri = "https://{0}.recurly.com/v2{1}";
         public const string RecurlyApiVersion = "2.8";
 
@@ -89,7 +103,14 @@ namespace Recurly.Configuration
             if (givenPath.Contains("://"))
                 return givenPath;
 
-            return string.Format(RecurlyServerUri, Subdomain, givenPath);
+            var prefix = Subdomain;
+
+            if (!string.IsNullOrWhiteSpace(ServerUriPrefix))
+            {
+                prefix = string.Format("{0}{1}", ServerUriPrefix, Subdomain);
+            }
+
+            return string.Format(RecurlyServerUri, prefix, givenPath);
         }
 
         private static Settings _instance;
@@ -98,6 +119,7 @@ namespace Recurly.Configuration
         private int _pageSize;
         private bool _hasLoaded;
         private string _subdomain;
+        private string _serverUriPrefix;
 
         public static Settings Instance
         {
@@ -111,15 +133,17 @@ namespace Recurly.Configuration
             Subdomain = Section.Current.Subdomain;
             PrivateKey = Section.Current.PrivateKey;
             PageSize = Section.Current.PageSize;
+            ServerUriPrefix = Section.Current.ServerUriPrefix;
             _hasLoaded = true;
         }
 
-        public void Initialize(string apiKey, string subdomain, string privateKey = "", int pageSize = 50)
+        public void Initialize(string apiKey, string subdomain, string privateKey = "", int pageSize = 50, string serverUriPrex = "")
         {
             ApiKey = apiKey;
             Subdomain = subdomain;
             PrivateKey = privateKey;
             PageSize = pageSize;
+            ServerUriPrefix = serverUriPrex;
             _hasLoaded = true;
         }
 
